@@ -11,7 +11,9 @@ if len(sys.argv) != 2:
     print("usage: {} <dict.txt>".format(sys.argv[0]))
     sys.exit(1)
 
-t9 = {'\'': 1,
+t9 = {'.': 1, '!': 1, '?': 1,
+      ':': 1, '-': 1, "'": 1,
+      '(': 1, ')': 1, ';': 1,
       'a': 2, 'b': 2, 'c': 2,
       'd': 3, 'e': 3, 'f': 3,
       'g': 4, 'h': 4, 'i': 4,
@@ -23,11 +25,11 @@ t9 = {'\'': 1,
 
 lookup = {}
 
-def print_candidates(tree, n):
+def print_candidates(tree, n, ind=0):
     candidate = tree
     while candidate:
         if 'words' in candidate:
-            print(ERASE_LINE + "\r" + candidate['words'][0][:n] + " " + str(candidate['words']), end='')
+            print(ERASE_LINE + "\r" + candidate['words'][ind % len(candidate['words'])][:n] + " " + str(candidate['words']), end='')
             break
         for key in iter(candidate):
             if key != "words":
@@ -61,22 +63,25 @@ while exit == False:
     key = getkey()
     if key in '123456789':
         digit = int(key)
-        n += 1
-        if digit in cur:
-            if 'words' in cur[digit]:
-                print(ERASE_LINE + "\r" + cur[digit]['words'][0][:n] + " " + str(cur[digit]['words']), end='')
-            else:
-                print_candidates(cur[digit], n)
-        else:
+        if digit not in cur:
             continue
+        n += 1
+        print_candidates(cur[digit], n)
         history.append(cur)
         cur = cur[digit]
-    elif key == '0':
+        ind = 0
+        continue
+    if key == keys.TAB:
+        ind += 1
+        print_candidates(cur, n, ind)
+        continue
+    elif key == '0' or key == keys.SPACE:
         cur = lookup
         n = 0
         history.clear()
         print("")
     elif key == keys.BACKSPACE:
+        ind = 0
         if len(history) > 0:
             cur = history.pop()
             n -= 1
