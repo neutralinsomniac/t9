@@ -2,6 +2,7 @@
 
 import time
 import sys
+from getkey import getkey, keys
 
 # load dictionary
 if len(sys.argv) != 2:
@@ -21,7 +22,7 @@ t9 = {'\'': 1,
 lookup = {}
 
 def print_candidates(tree, n):
-    candidate = cur[int(c)]
+    candidate = tree
     while candidate:
         if 'words' in candidate:
             print(candidate['words'][0][:n] + " " + str(candidate['words']))
@@ -49,18 +50,28 @@ start = time.time()
 load_dict(sys.argv[1])
 print("loaded in {}s".format(time.time() - start))
 
+cur = lookup
+n = 0
 
-for line in sys.stdin:
-    cur = lookup
-    n = 0
-    for c in line[:-1]:
+exit = False
+while exit == False:
+    key = getkey()
+    if key in '123456789':
+        digit = int(key)
         n += 1
-        if int(c) in cur:
-            if 'words' in cur[int(c)]:
-                print(cur[int(c)]['words'][0][:n] + " " + str(cur[int(c)]['words']))
+        if digit in cur:
+            if 'words' in cur[digit]:
+                print(cur[digit]['words'][0][:n] + " " + str(cur[digit]['words']))
             else:
-                print_candidates(cur[int(c)], n)
+                print_candidates(cur[digit], n)
         else:
             print("NOPE")
-            break
-        cur = cur[int(c)]
+            continue
+        cur = cur[digit]
+    elif key == '0':
+        cur = lookup
+        n = 0
+        print(" ")
+    elif key == 'q':
+        exit = True
+        continue
