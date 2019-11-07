@@ -4,6 +4,8 @@ import time
 import sys
 from getkey import getkey, keys
 
+ERASE_LINE = '\x1b[2K'
+
 # load dictionary
 if len(sys.argv) != 2:
     print("usage: {} <dict.txt>".format(sys.argv[0]))
@@ -25,7 +27,7 @@ def print_candidates(tree, n):
     candidate = tree
     while candidate:
         if 'words' in candidate:
-            print(candidate['words'][0][:n] + " " + str(candidate['words']))
+            print(ERASE_LINE + "\r" + candidate['words'][0][:n] + " " + str(candidate['words']), end='')
             break
         for key in iter(candidate):
             if key != "words":
@@ -61,17 +63,17 @@ while exit == False:
         n += 1
         if digit in cur:
             if 'words' in cur[digit]:
-                print(cur[digit]['words'][0][:n] + " " + str(cur[digit]['words']))
+                print(ERASE_LINE + "\r" + cur[digit]['words'][0][:n] + " " + str(cur[digit]['words']), end='')
             else:
                 print_candidates(cur[digit], n)
         else:
-            print("NOPE")
+            print(ERASE_LINE + "\rNOPE", end='')
             continue
         cur = cur[digit]
     elif key == '0':
         cur = lookup
         n = 0
-        print(" ")
+        print("")
     elif key == 'q':
         exit = True
         continue
