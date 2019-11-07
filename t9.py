@@ -54,6 +54,7 @@ print("loaded in {}s".format(time.time() - start))
 
 cur = lookup
 n = 0
+history = []
 
 exit = False
 while exit == False:
@@ -67,13 +68,25 @@ while exit == False:
             else:
                 print_candidates(cur[digit], n)
         else:
-            print(ERASE_LINE + "\rNOPE", end='')
             continue
+        history.append(cur)
         cur = cur[digit]
     elif key == '0':
         cur = lookup
         n = 0
+        history.clear()
         print("")
+    elif key == keys.BACKSPACE:
+        if len(history) > 0:
+            cur = history.pop()
+            n -= 1
+        else:
+            cur = lookup
+        if cur == lookup:
+            print(ERASE_LINE + "\r", end='')
+        else:
+            print_candidates(cur, n)
+        continue
     elif key == 'q':
         exit = True
         continue
