@@ -46,7 +46,7 @@ class T9Engine():
 
     def add_digit(self, digit):
         if digit not in self._cur:
-            return False, False
+            return False
         self._n += 1
         self._history.append(self._cur)
         self._cur = self._cur[digit]
@@ -58,16 +58,15 @@ class T9Engine():
         if len(self._history) > 0:
             self._cur = self._history.pop()
             self._n -= 1
-            return self.get_completion()
-        else:
-            self._cur = self._lookup
-            return False
+        return self.get_completion()
 
     def get_completion(self):
+        if self._n == 0:
+            return ''
         candidate = self._cur
         while candidate:
             if 'words' in candidate:
-                return candidate['words'][self._ind % len(candidate['words'])][:self._n], 'words' in self._cur
+                return candidate['words'][self._ind % len(candidate['words'])][:self._n]
             for key in iter(candidate):
                 if key != "words":
                     candidate = candidate[key]
@@ -101,21 +100,18 @@ exit = False
 doing_punctuation_stuff = False
 while exit == False:
     key = getkey()
-    if key in '1':
-        if not doing_punctuation_stuff:
-            doing_punctuation_stuff = True
-            t9_engine.new_completion()
-            line += cur_word
-            cur_word = ''
-        tmp, is_complete_word = t9_engine.add_digit(int(key))
-        if tmp:
-            cur_word = tmp
-    elif key in '23456789':
-        tmp, is_complete_word = t9_engine.add_digit(int(key))
+    if key in '123456789':
+        if key in '1':
+            if not doing_punctuation_stuff:
+                doing_punctuation_stuff = True
+                t9_engine.new_completion()
+                line += cur_word
+                cur_word = ''
+        tmp = t9_engine.add_digit(int(key))
         if tmp:
             cur_word = tmp
     elif key == keys.TAB:
-        cur_word, is_complete_word = t9_engine.next_completion()
+        cur_word = t9_engine.next_completion()
     elif key == '0' or key == keys.SPACE:
         line += cur_word + ' '
         cur_word = ''
@@ -129,13 +125,16 @@ while exit == False:
             words = line.split(' ')
             cur_word = words[-1]
             for c in cur_word:
-                if T9Engine.T9[c] == 1 and not doing_punctuation_stuff:
+                if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
                     t9_engine.new_completion()
                     doing_punctuation_stuff = True
-                cur_word, _ = t9_engine.add_digit(T9Engine.T9[c])
-            line = line[:-1*t9_engine.get_cur_completion_len()]
+                t9_engine.add_digit(T9Engine.T9[c.lower()])
+            if t9_engine.get_cur_completion_len() != 0:
+                cur_word = line[-1*t9_engine.get_cur_completion_len():]
+            if t9_engine.get_cur_completion_len() != 0:
+                line = line[:-1*t9_engine.get_cur_completion_len()]
         else:
-            tmp, is_complete_word = t9_engine.backspace()
+            tmp = t9_engine.backspace()
             if tmp:
                 cur_word = tmp
             else:
