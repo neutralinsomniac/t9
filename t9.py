@@ -25,11 +25,11 @@ class T9Engine():
           'w': 9, 'x': 9, 'y': 9, 'z': 9}
 
     def __init__(self):
-        self._lookup = {}
-        self._cur = self._lookup
-        self._history = []
-        self._n = 0
-        self._ind = 0
+        self._lookup = {} # our dictionary
+        self._cur = self._lookup # where we're sitting in the dictionary
+        self._history = [] # breadcrumb pointers of the path we've taken through the dictionary
+        self._completion_len = 0 # number of characters in the current completion state
+        self._completion_choice = 0 # index into current 'words' array
 
     def load_dict(self, filename):
         with open(filename, 'r') as dictionary:
@@ -47,43 +47,43 @@ class T9Engine():
     def add_digit(self, digit):
         if digit not in self._cur:
             return False
-        self._n += 1
+        self._completion_len += 1
         self._history.append(self._cur)
         self._cur = self._cur[digit]
-        self._ind = 0
+        self._completion_choice = 0
         return self.get_completion()
 
     def backspace(self):
-        self._ind = 0
+        self._completion_choice = 0
         if len(self._history) > 0:
             self._cur = self._history.pop()
-            self._n -= 1
+            self._completion_len -= 1
         return self.get_completion()
 
     def get_completion(self):
-        if self._n == 0:
+        if self._completion_len == 0:
             return ''
         candidate = self._cur
         while candidate:
             if 'words' in candidate:
-                return candidate['words'][self._ind % len(candidate['words'])][:self._n]
+                return candidate['words'][self._completion_choice % len(candidate['words'])][:self._completion_len]
             for key in iter(candidate):
                 if key != "words":
                     candidate = candidate[key]
                     break
 
     def next_completion(self):
-        self._ind += 1
+        self._completion_choice += 1
         return self.get_completion()
 
     def new_completion(self):
         self._cur = self._lookup
         self._history.clear()
-        self._ind = 0
-        self._n = 0
+        self._completion_choice = 0
+        self._completion_len = 0
 
     def get_cur_completion_len(self):
-        return self._n
+        return self._completion_len
     
 
 t9_engine = T9Engine()
