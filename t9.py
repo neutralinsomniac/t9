@@ -110,6 +110,12 @@ while exit == False:
         tmp = t9_engine.add_digit(int(key))
         if tmp:
             cur_word = tmp
+    elif key == 'Q':
+        exit = True
+    elif key.isalpha():
+        tmp = t9_engine.add_digit(T9Engine.T9[key.lower()])
+        if tmp:
+            cur_word = tmp
     elif key == keys.TAB:
         cur_word = t9_engine.next_completion()
     elif key == '0' or key == keys.SPACE:
@@ -124,6 +130,7 @@ while exit == False:
             line = line[:-1]
             words = line.split(' ')
             cur_word = words[-1]
+            doing_punctuation_stuff = False
             for c in cur_word:
                 if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
                     t9_engine.new_completion()
@@ -139,6 +146,4 @@ while exit == False:
                 cur_word = tmp
             else:
                 cur_word = ''
-    elif key == 'q':
-        exit = True
     print(ERASE_LINE + "\r" + line + cur_word, end='')
