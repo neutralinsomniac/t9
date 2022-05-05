@@ -11,6 +11,9 @@ if len(sys.argv) != 2:
     print("usage: {} <dict.txt>".format(sys.argv[0]))
     sys.exit(1)
 
+class WordNotFoundException(Exception):
+    pass
+
 class T9Engine():
     T9 = {'.': 1, ',': 1, '!': 1, '?': 1,
           ':': 1, '-': 1, "'": 1,
@@ -73,8 +76,13 @@ class T9Engine():
                     break
 
     def next_completion(self):
+        if self._completion_len == 0:
+            return
+
         self._completion_choice += 1
-        return self.get_completion()
+        if self._completion_choice >= len(self._cur['words']):
+            self._completion_choice = 0
+            raise WordNotFoundException
 
     def new_completion(self):
         self._cur = self._lookup
@@ -99,8 +107,11 @@ def recalculate_state():
         t9_engine.add_digit(T9Engine.T9[c.lower()])
     if t9_engine.get_cur_completion_len() != 0:
         line = line[:-1*t9_engine.get_cur_completion_len()]
-        while t9_engine.get_completion() != word:
-            t9_engine.next_completion()
+        try:
+            while t9_engine.get_completion() != word:
+                t9_engine.next_completion()
+        except WordNotFoundException:
+            pass
 
 t9_engine = T9Engine()
 
@@ -132,7 +143,10 @@ while exit == False:
                 t9_engine.new_completion()
         t9_engine.add_digit(int(key))
     elif key == keys.TAB:
-        t9_engine.next_completion()
+        try:
+            t9_engine.next_completion()
+        except WordNotFoundException:
+            pass
     elif key == "0" or key == keys.SPACE:
         line += t9_engine.get_completion() + " "
         t9_engine.new_completion()
