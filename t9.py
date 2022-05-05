@@ -18,8 +18,8 @@ class WordNotFoundException(Exception):
 
 class T9Engine():
     T9 = {'.': 1, ',': 1, '!': 1, '?': 1,
-          ':': 1, '-': 1, "'": 1,
-          '(': 1, ')': 1, ';': 1,
+          ':': 1, '-': 1, '\'': 1,
+          '(': 1, ')': 1, ';': 1, '[': 1, ']': 1,
           'a': 2, 'b': 2, 'c': 2,
           'd': 3, 'e': 3, 'f': 3,
           'g': 4, 'h': 4, 'i': 4,
@@ -134,8 +134,11 @@ while exit == False:
         break
 
     # for using a-z and period instead of numbers
-    if key.isalpha() or key == ".":
-        key = str(T9Engine.T9[key.lower()])
+    try:
+        if not key.isdecimal():
+            key = str(T9Engine.T9[key.lower()])
+    except KeyError:
+        pass
 
     if key in "123456789":
         if key in "1":
