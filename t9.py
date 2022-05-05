@@ -51,7 +51,7 @@ class T9Engine():
 
     def add_digit(self, digit):
         if digit not in self._cur:
-            return False
+            raise WordNotFoundException
         self._completion_len += 1
         self._history.append(self._cur)
         self._cur = self._cur[digit]
@@ -128,6 +128,8 @@ exit = False
 doing_punctuation_stuff = False
 
 while exit == False:
+    not_found = False
+
     key = getkey()
 
     if key == "Q":
@@ -146,11 +148,16 @@ while exit == False:
                 doing_punctuation_stuff = True
                 line += t9_engine.get_completion()
                 t9_engine.new_completion()
-        t9_engine.add_digit(int(key))
+        try:
+            t9_engine.add_digit(int(key))
+        except WordNotFoundException:
+            not_found = True
+            pass
     elif key == keys.TAB:
         try:
             t9_engine.next_completion()
         except WordNotFoundException:
+            not_found = True
             pass
     elif key == "0" or key == keys.SPACE:
         line += t9_engine.get_completion() + " "
@@ -167,4 +174,4 @@ while exit == False:
             if not tmp:
                 recalculate_state()
 
-    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END, end='')
+    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END + ("?" if not_found else ""), end='')
