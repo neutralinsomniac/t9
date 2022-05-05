@@ -85,7 +85,7 @@ class T9Engine():
     def get_cur_completion_len(self):
         return self._completion_len
 
-def recalculate_cur_word_and_line():
+def recalculate_state():
     global t9_engine
     global line
     global cur_word
@@ -148,12 +148,12 @@ while exit == False:
             if len(line) == 0:
                 continue
             line = line[:-1]
-            recalculate_cur_word_and_line()
+            recalculate_state()
         else:
             tmp = t9_engine.backspace()
             if tmp:
                 cur_word = tmp
             else:
-                recalculate_cur_word_and_line()
+                recalculate_state()
 
     print(ERASE_LINE + "\r" + line + cur_word, end='')
