@@ -5,6 +5,8 @@ import sys
 from getkey import getkey, keys
 
 ERASE_LINE = "\x1b[2K"
+UNDERLINE_START = u"\u001b[4m"
+UNDERLINE_END = u"\u001b[0m"
 
 # load dictionary
 if len(sys.argv) != 2:
@@ -162,4 +164,4 @@ while exit == False:
             if not tmp:
                 recalculate_state()
 
-    print(ERASE_LINE + "\r" + line + t9_engine.get_completion(), end='')
+    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END, end='')
