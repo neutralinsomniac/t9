@@ -85,6 +85,23 @@ class T9Engine():
     def get_cur_completion_len(self):
         return self._completion_len
 
+def recalculate_cur_word_and_line():
+    global t9_engine
+    global line
+    global cur_word
+    global doing_punctuation_stuff
+
+    words = line.split(" ")
+    cur_word = words[-1]
+    doing_punctuation_stuff = False
+    for c in cur_word:
+        if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
+            t9_engine.new_completion()
+            doing_punctuation_stuff = True
+        t9_engine.add_digit(T9Engine.T9[c.lower()])
+    if t9_engine.get_cur_completion_len() != 0:
+        cur_word = line[-1*t9_engine.get_cur_completion_len():]
+        line = line[:-1*t9_engine.get_cur_completion_len()]
 
 t9_engine = T9Engine()
 
@@ -98,6 +115,7 @@ cur_word = ""
 
 exit = False
 doing_punctuation_stuff = False
+
 while exit == False:
     key = getkey()
 
@@ -130,21 +148,12 @@ while exit == False:
             if len(line) == 0:
                 continue
             line = line[:-1]
-            words = line.split(" ")
-            cur_word = words[-1]
-            doing_punctuation_stuff = False
-            for c in cur_word:
-                if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
-                    t9_engine.new_completion()
-                    doing_punctuation_stuff = True
-                t9_engine.add_digit(T9Engine.T9[c.lower()])
-            if t9_engine.get_cur_completion_len() != 0:
-                cur_word = line[-1*t9_engine.get_cur_completion_len():]
-                line = line[:-1*t9_engine.get_cur_completion_len()]
+            recalculate_cur_word_and_line()
         else:
             tmp = t9_engine.backspace()
             if tmp:
                 cur_word = tmp
             else:
-                cur_word = ''
+                recalculate_cur_word_and_line()
+
     print(ERASE_LINE + "\r" + line + cur_word, end='')
