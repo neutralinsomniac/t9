@@ -90,15 +90,17 @@ def recalculate_state():
     global line
     global doing_punctuation_stuff
 
-    words = line.split(" ")
+    word = line.split(" ")[-1]
     doing_punctuation_stuff = False
-    for c in words[-1]:
+    for c in word:
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
             t9_engine.new_completion()
             doing_punctuation_stuff = True
         t9_engine.add_digit(T9Engine.T9[c.lower()])
     if t9_engine.get_cur_completion_len() != 0:
         line = line[:-1*t9_engine.get_cur_completion_len()]
+        while t9_engine.get_completion() != word:
+            t9_engine.next_completion()
 
 t9_engine = T9Engine()
 
