@@ -4,7 +4,7 @@ import time
 import sys
 from getkey import getkey, keys
 
-ERASE_LINE = '\x1b[2K'
+ERASE_LINE = "\x1b[2K"
 
 # load dictionary
 if len(sys.argv) != 2:
@@ -32,7 +32,7 @@ class T9Engine():
         self._completion_choice = 0 # index into current 'words' array
 
     def load_dict(self, filename):
-        with open(filename, 'r') as dictionary:
+        with open(filename, "r") as dictionary:
             for word in dictionary.readlines():
                 cur = self._lookup
                 for c in word[:-1]:
@@ -40,9 +40,9 @@ class T9Engine():
                     if num not in cur:
                         cur[num] = {}
                     cur = cur[num]
-                if 'words' not in cur:
-                    cur['words'] = []
-                cur['words'].append(word[:-1])
+                if "words" not in cur:
+                    cur["words"] = []
+                cur["words"].append(word[:-1])
 
     def add_digit(self, digit):
         if digit not in self._cur:
@@ -62,7 +62,7 @@ class T9Engine():
 
     def get_completion(self):
         if self._completion_len == 0:
-            return ''
+            return ""
         candidate = self._cur
         while candidate:
             if 'words' in candidate:
@@ -84,7 +84,7 @@ class T9Engine():
 
     def get_cur_completion_len(self):
         return self._completion_len
-    
+
 
 t9_engine = T9Engine()
 
@@ -93,34 +93,36 @@ start = time.time()
 t9_engine.load_dict(sys.argv[1])
 print("loaded in {}s".format(time.time() - start))
 
-line = ''
-cur_word = ''
+line = ""
+cur_word = ""
 
 exit = False
 doing_punctuation_stuff = False
 while exit == False:
     key = getkey()
-    if key in '123456789':
-        if key in '1':
+
+    if key == "Q":
+        break
+
+    # for using a-z and period instead of numbers
+    if key.isalpha() or key == ".":
+        key = str(T9Engine.T9[key.lower()])
+
+    if key in "123456789":
+        if key in "1":
             if not doing_punctuation_stuff:
                 doing_punctuation_stuff = True
                 t9_engine.new_completion()
                 line += cur_word
-                cur_word = ''
+                cur_word = ""
         tmp = t9_engine.add_digit(int(key))
-        if tmp:
-            cur_word = tmp
-    elif key == 'Q':
-        exit = True
-    elif key.isalpha():
-        tmp = t9_engine.add_digit(T9Engine.T9[key.lower()])
         if tmp:
             cur_word = tmp
     elif key == keys.TAB:
         cur_word = t9_engine.next_completion()
-    elif key == '0' or key == keys.SPACE:
-        line += cur_word + ' '
-        cur_word = ''
+    elif key == "0" or key == keys.SPACE:
+        line += cur_word + " "
+        cur_word = ""
         t9_engine.new_completion()
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
@@ -128,7 +130,7 @@ while exit == False:
             if len(line) == 0:
                 continue
             line = line[:-1]
-            words = line.split(' ')
+            words = line.split(" ")
             cur_word = words[-1]
             doing_punctuation_stuff = False
             for c in cur_word:
@@ -138,7 +140,6 @@ while exit == False:
                 t9_engine.add_digit(T9Engine.T9[c.lower()])
             if t9_engine.get_cur_completion_len() != 0:
                 cur_word = line[-1*t9_engine.get_cur_completion_len():]
-            if t9_engine.get_cur_completion_len() != 0:
                 line = line[:-1*t9_engine.get_cur_completion_len()]
         else:
             tmp = t9_engine.backspace()
