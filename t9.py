@@ -88,19 +88,16 @@ class T9Engine():
 def recalculate_state():
     global t9_engine
     global line
-    global cur_word
     global doing_punctuation_stuff
 
     words = line.split(" ")
-    cur_word = words[-1]
     doing_punctuation_stuff = False
-    for c in cur_word:
+    for c in words[-1]:
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
             t9_engine.new_completion()
             doing_punctuation_stuff = True
         t9_engine.add_digit(T9Engine.T9[c.lower()])
     if t9_engine.get_cur_completion_len() != 0:
-        cur_word = line[-1*t9_engine.get_cur_completion_len():]
         line = line[:-1*t9_engine.get_cur_completion_len()]
 
 t9_engine = T9Engine()
@@ -111,7 +108,6 @@ t9_engine.load_dict(sys.argv[1])
 print("loaded in {}s".format(time.time() - start))
 
 line = ""
-cur_word = ""
 
 exit = False
 doing_punctuation_stuff = False
@@ -130,17 +126,13 @@ while exit == False:
         if key in "1":
             if not doing_punctuation_stuff:
                 doing_punctuation_stuff = True
+                line += t9_engine.get_completion()
                 t9_engine.new_completion()
-                line += cur_word
-                cur_word = ""
-        tmp = t9_engine.add_digit(int(key))
-        if tmp:
-            cur_word = tmp
+        t9_engine.add_digit(int(key))
     elif key == keys.TAB:
-        cur_word = t9_engine.next_completion()
+        t9_engine.next_completion()
     elif key == "0" or key == keys.SPACE:
-        line += cur_word + " "
-        cur_word = ""
+        line += t9_engine.get_completion() + " "
         t9_engine.new_completion()
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
@@ -151,9 +143,7 @@ while exit == False:
             recalculate_state()
         else:
             tmp = t9_engine.backspace()
-            if tmp:
-                cur_word = tmp
-            else:
+            if not tmp:
                 recalculate_state()
 
-    print(ERASE_LINE + "\r" + line + cur_word, end='')
+    print(ERASE_LINE + "\r" + line + t9_engine.get_completion(), end='')
