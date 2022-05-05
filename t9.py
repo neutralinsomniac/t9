@@ -108,9 +108,10 @@ def recalculate_state():
             doing_punctuation_stuff = True
         t9_engine.add_digit(T9Engine.T9[c.lower()])
     if t9_engine.get_cur_completion_len() != 0:
+        word_to_match = line[-1*t9_engine.get_cur_completion_len():]
         line = line[:-1*t9_engine.get_cur_completion_len()]
         try:
-            while t9_engine.get_completion() != word:
+            while t9_engine.get_completion() != word_to_match:
                 t9_engine.next_completion()
         except WordNotFoundException:
             pass
