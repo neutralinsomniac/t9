@@ -154,8 +154,12 @@ word_not_found = False
 while True:
     completion = t9_engine.get_completion()
     completion_len = t9_engine.get_engine_chars()
-    if "'" in completion:
-        completion_len += 1
+    i = 0
+    while i < completion_len:
+        if completion[i] == "'":
+            completion_len += 1
+        i += 1
+
     completion_left = completion[:completion_len]
     completion_right = completion[completion_len:]
     print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
