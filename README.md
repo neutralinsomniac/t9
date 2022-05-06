@@ -12,3 +12,13 @@ Keys:
 - 0 or space: accept completion and insert a space
 - Backspace: delete character
 - Enter: when '?' is showing (indicating an unknown word), hit enter to add a custom word to the dictionary
+
+Quickstart:
+```
+git clone https://github.com/neutralinsomniac/t9.git
+cd t9
+python3 -m venv .
+source bin/activate
+pip install -r requirements.txt
+./t9.py google-10000-english-usa.txt
+```
