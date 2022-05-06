@@ -84,10 +84,13 @@ class T9Engine():
         if self._completion_len == 0:
             return
 
-        self._completion_choice += 1
-        if "words" not in self._cur or self._completion_choice >= len(self._cur['words']):
-            self._completion_choice = 0
+        if "words" not in self._cur or (self._completion_choice + 1) >= len(self._cur['words']):
             raise WordNotFoundException
+
+        self._completion_choice += 1
+
+    def reset_completion(self):
+        self._completion_choice = 0
 
     def new_completion(self):
         self._cur = self._lookup
@@ -161,12 +164,15 @@ while exit == False:
             word_not_found = True
             pass
     elif key == keys.TAB:
-        word_not_found = False
-        try:
-            t9_engine.next_completion()
-        except WordNotFoundException:
-            word_not_found = True
-            pass
+        if word_not_found:
+            t9_engine.reset_completion()
+            word_not_found = False
+        else:
+            try:
+                t9_engine.next_completion()
+            except WordNotFoundException:
+                word_not_found = True
+                pass
     elif key == "0" or key == keys.SPACE:
         word_not_found = False
         line += t9_engine.get_completion() + " "
@@ -184,9 +190,7 @@ while exit == False:
             if not tmp:
                 recalculate_state()
     elif key == keys.ENTER and word_not_found:
-        print("")
-        new_word = input("new word: ").strip()
-        print("adding new word: {}".format(new_word))
+        new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
             t9_engine.add_word(new_word)
             line += new_word + " "
