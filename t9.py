@@ -40,6 +40,8 @@ class T9Engine():
     def add_word(self, word):
         cur = self._lookup
         for c in word:
+            if c == "'":
+                continue
             num = self.T9[c.lower()]
             if num not in cur:
                 cur[num] = {}
@@ -75,7 +77,7 @@ class T9Engine():
         candidate = self._cur
         while candidate:
             if 'words' in candidate:
-                return candidate['words'][self._completion_choice % len(candidate['words'])][:self._completion_len]
+                return candidate['words'][self._completion_choice % len(candidate['words'])]
             for key in iter(candidate):
                 if key != "words":
                     candidate = candidate[key]
@@ -166,7 +168,8 @@ while True:
         try:
             t9_engine.add_digit(int(key))
         except WordNotFoundException:
-            word_not_found = True
+            if not doing_punctuation_stuff:
+                word_not_found = True
             pass
     elif key == keys.TAB:
         if word_not_found:
@@ -176,7 +179,10 @@ while True:
             try:
                 t9_engine.next_completion()
             except WordNotFoundException:
-                word_not_found = True
+                if not doing_punctuation_stuff:
+                    word_not_found = True
+                else:
+                    t9_engine.reset_completion()
                 pass
     elif key == "0" or key == keys.SPACE:
         word_not_found = False
@@ -205,4 +211,8 @@ while True:
             word_not_found = False
 
 
-    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END + ("?" if word_not_found else ""), end='')
+    completion = t9_engine.get_completion()
+    completion_len = t9_engine.get_cur_completion_len()
+    completion_left = completion[:completion_len]
+    completion_right = completion[completion_len:]
+    print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
