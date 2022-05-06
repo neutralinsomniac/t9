@@ -40,6 +40,8 @@ class T9Engine():
     def add_word(self, word):
         cur = self._lookup
         for c in word:
+            if c == "'":
+                continue
             num = self.T9[c.lower()]
             if num not in cur:
                 cur[num] = {}
@@ -67,7 +69,7 @@ class T9Engine():
         self._completion_choice = 0
         if len(self._history) > 0:
             self._cur = self._history.pop()
-            self._completion_len -= 1
+        self._completion_len = max(self._completion_len - 1, 0)
         return self.get_completion()
 
     def get_completion(self):
@@ -101,6 +103,9 @@ class T9Engine():
         self._completion_len = 0
 
     def get_cur_completion_len(self):
+        return len(self.get_completion())
+
+    def get_engine_chars(self):
         return self._completion_len
 
 def recalculate_state():
@@ -111,6 +116,8 @@ def recalculate_state():
     word = line.split(" ")[-1]
     doing_punctuation_stuff = False
     for c in word:
+        if c == "'":
+            continue
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
             t9_engine.new_completion()
             doing_punctuation_stuff = True
@@ -146,7 +153,7 @@ word_not_found = False
 
 while True:
     completion = t9_engine.get_completion()
-    completion_len = t9_engine.get_cur_completion_len()
+    completion_len = t9_engine.get_engine_chars()
     completion_left = completion[:completion_len]
     completion_right = completion[completion_len:]
     print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
