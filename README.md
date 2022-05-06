@@ -7,6 +7,7 @@ Features:
 
 Keys:
 - 1-9: normal T9 input
+- a-z, punctuation: alternate input. maps to one of the 1-9 keys.
 - Tab: next completion
 - 0 or space: accept completion and insert a space
 - Backspace: delete character
