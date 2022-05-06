@@ -2,6 +2,7 @@
 
 import time
 import sys
+from os.path import exists
 from getkey import getkey, keys
 
 ERASE_LINE = "\x1b[2K"
@@ -125,20 +126,24 @@ def recalculate_state():
 
 t9_engine = T9Engine()
 
-print("load...")
+print("loading {}...".format(sys.argv[1]))
 start = time.time()
 t9_engine.load_dict(sys.argv[1])
 print("loaded in {}s".format(time.time() - start))
 
+if exists("user_dict.txt"):
+    print("loading user_dict.txt...")
+    start = time.time()
+    t9_engine.load_dict("user_dict.txt")
+    print("loaded in {}s".format(time.time() - start))
+
 line = ""
 
-exit = False
 doing_punctuation_stuff = False
 
 word_not_found = False
 
-while exit == False:
-
+while True:
     key = getkey()
 
     if key == "Q":
@@ -193,6 +198,8 @@ while exit == False:
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
             t9_engine.add_word(new_word)
+            with open("user_dict.txt", "a") as f:
+                f.write(new_word + "\n")
             line += new_word + " "
             t9_engine.new_completion()
             word_not_found = False
