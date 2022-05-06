@@ -36,18 +36,21 @@ class T9Engine():
         self._completion_len = 0 # number of characters in the current completion state
         self._completion_choice = 0 # index into current 'words' array
 
+    def add_word(self, word):
+        cur = self._lookup
+        for c in word:
+            num = self.T9[c.lower()]
+            if num not in cur:
+                cur[num] = {}
+            cur = cur[num]
+        if "words" not in cur:
+            cur["words"] = []
+        cur["words"].append(word)
+
     def load_dict(self, filename):
         with open(filename, "r") as dictionary:
             for word in dictionary.readlines():
-                cur = self._lookup
-                for c in word[:-1]:
-                    num = self.T9[c.lower()]
-                    if num not in cur:
-                        cur[num] = {}
-                    cur = cur[num]
-                if "words" not in cur:
-                    cur["words"] = []
-                cur["words"].append(word[:-1])
+                self.add_word(word.strip())
 
     def add_digit(self, digit):
         if digit not in self._cur:
@@ -82,7 +85,7 @@ class T9Engine():
             return
 
         self._completion_choice += 1
-        if self._completion_choice >= len(self._cur['words']):
+        if "words" not in self._cur or self._completion_choice >= len(self._cur['words']):
             self._completion_choice = 0
             raise WordNotFoundException
 
@@ -108,6 +111,7 @@ def recalculate_state():
             doing_punctuation_stuff = True
         t9_engine.add_digit(T9Engine.T9[c.lower()])
     if t9_engine.get_cur_completion_len() != 0:
+        # init the engine with the word
         word_to_match = line[-1*t9_engine.get_cur_completion_len():]
         line = line[:-1*t9_engine.get_cur_completion_len()]
         try:
@@ -128,8 +132,9 @@ line = ""
 exit = False
 doing_punctuation_stuff = False
 
+word_not_found = False
+
 while exit == False:
-    not_found = False
 
     key = getkey()
 
@@ -144,6 +149,7 @@ while exit == False:
         pass
 
     if key in "123456789":
+        word_not_found = False
         if key in "1":
             if not doing_punctuation_stuff:
                 doing_punctuation_stuff = True
@@ -152,19 +158,22 @@ while exit == False:
         try:
             t9_engine.add_digit(int(key))
         except WordNotFoundException:
-            not_found = True
+            word_not_found = True
             pass
     elif key == keys.TAB:
+        word_not_found = False
         try:
             t9_engine.next_completion()
         except WordNotFoundException:
-            not_found = True
+            word_not_found = True
             pass
     elif key == "0" or key == keys.SPACE:
+        word_not_found = False
         line += t9_engine.get_completion() + " "
         t9_engine.new_completion()
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
+        word_not_found = False
         if t9_engine.get_cur_completion_len() == 0:
             if len(line) == 0:
                 continue
@@ -174,5 +183,15 @@ while exit == False:
             tmp = t9_engine.backspace()
             if not tmp:
                 recalculate_state()
+    elif key == keys.ENTER and word_not_found:
+        print("")
+        new_word = input("new word: ").strip()
+        print("adding new word: {}".format(new_word))
+        if len(new_word) != 0:
+            t9_engine.add_word(new_word)
+            line += new_word + " "
+            t9_engine.new_completion()
+            word_not_found = False
 
-    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END + ("?" if not_found else ""), end='')
+
+    print(ERASE_LINE + "\r" + line + UNDERLINE_START + t9_engine.get_completion() + UNDERLINE_END + ("?" if word_not_found else ""), end='')
