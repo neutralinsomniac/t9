@@ -40,15 +40,14 @@ class T9Engine():
     def add_word(self, word):
         cur = self._lookup
         for c in word:
-            if c == "'":
-                continue
             num = self.T9[c.lower()]
             if num not in cur:
                 cur[num] = {}
             cur = cur[num]
         if "words" not in cur:
             cur["words"] = []
-        cur["words"].append(word)
+        if word not in cur["words"]:
+            cur["words"].append(word)
 
     def load_dict(self, filename):
         with open(filename, "r") as dictionary:
@@ -128,16 +127,16 @@ def recalculate_state():
 
 t9_engine = T9Engine()
 
-print("loading {}...".format(sys.argv[1]))
-start = time.time()
-t9_engine.load_dict(sys.argv[1])
-print("loaded in {}s".format(time.time() - start))
-
 if exists("user_dict.txt"):
     print("loading user_dict.txt...")
     start = time.time()
     t9_engine.load_dict("user_dict.txt")
     print("loaded in {}s".format(time.time() - start))
+
+print("loading {}...".format(sys.argv[1]))
+start = time.time()
+t9_engine.load_dict(sys.argv[1])
+print("loaded in {}s".format(time.time() - start))
 
 line = ""
 
@@ -146,6 +145,11 @@ doing_punctuation_stuff = False
 word_not_found = False
 
 while True:
+    completion = t9_engine.get_completion()
+    completion_len = t9_engine.get_cur_completion_len()
+    completion_left = completion[:completion_len]
+    completion_right = completion[completion_len:]
+    print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
     key = getkey()
 
     if key == "Q":
@@ -190,7 +194,9 @@ while True:
         t9_engine.new_completion()
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
-        word_not_found = False
+        if word_not_found:
+            word_not_found = False
+            continue
         if t9_engine.get_cur_completion_len() == 0:
             if len(line) == 0:
                 continue
@@ -210,9 +216,3 @@ while True:
             t9_engine.new_completion()
             word_not_found = False
 
-
-    completion = t9_engine.get_completion()
-    completion_len = t9_engine.get_cur_completion_len()
-    completion_left = completion[:completion_len]
-    completion_right = completion[completion_len:]
-    print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
