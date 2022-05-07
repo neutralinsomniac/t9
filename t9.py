@@ -19,7 +19,7 @@ class WordNotFoundException(Exception):
 
 class T9Engine():
     T9 = {'.': 1, ',': 1, '!': 1, '?': 1,
-          ':': 1, '-': 1, '\'': 1,
+          ':': 1, '-': 1, '\'': 1, '/': 1, '*': 1,
           '(': 1, ')': 1, ';': 1, '[': 1, ']': 1,
           'a': 2, 'b': 2, 'c': 2,
           'd': 3, 'e': 3, 'f': 3,
@@ -28,7 +28,10 @@ class T9Engine():
           'm': 6, 'n': 6, 'o': 6,
           'p': 7, 'q': 7, 'r': 7, 's': 7,
           't': 8, 'u': 8, 'v': 8,
-          'w': 9, 'x': 9, 'y': 9, 'z': 9}
+          'w': 9, 'x': 9, 'y': 9, 'z': 9,
+          '0': 0, '1': 1, '2': 2, '3': 3,
+          '4': 4, '5': 5, '6': 6, '7': 7,
+          '8': 8, '9': 9}
 
     def __init__(self):
         self._lookup = {} # our dictionary
@@ -40,8 +43,11 @@ class T9Engine():
 
     def add_word(self, word):
         cur = self._lookup
+        # until I figure out a better way to handle this
+        if "1" in word:
+            return False
         for c in word:
-            if c in "'-":
+            if c in "'":
                 continue
             num = self.T9[c.lower()]
             if num not in cur:
@@ -100,7 +106,7 @@ class T9Engine():
 
         self._completion_choice += 1
 
-    def reset_completion(self):
+    def reset_completion_choice(self):
         self._completion_choice = 0
 
     def new_completion(self):
@@ -127,12 +133,19 @@ def recalculate_state():
     word = line.split(" ")[-1]
     doing_punctuation_stuff = False
     for c in word:
-        if c in "'-":
+        if c in "'":
             continue
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
             t9_engine.new_completion()
             doing_punctuation_stuff = True
-        t9_engine.add_digit(T9Engine.T9[c.lower()])
+        elif doing_punctuation_stuff and T9Engine.T9[c.lower()] != 1:
+            t9_engine.new_completion()
+            doing_punctuation_stuff = False
+        try:
+            t9_engine.add_digit(T9Engine.T9[c.lower()])
+        except WordNotFoundException:
+            t9_engine.new_completion()
+            continue
     if t9_engine.get_cur_completion_len() != 0:
         # init the engine with the word
         word_to_match = line[-1*t9_engine.get_cur_completion_len():]
@@ -182,7 +195,7 @@ while True:
     completion_len = t9_engine.get_engine_chars()
     i = 0
     while i < completion_len:
-        if completion[i] in "'-":
+        if completion[i] in "'":
             completion_len += 1
         i += 1
 
@@ -209,24 +222,25 @@ while True:
                 doing_punctuation_stuff = True
                 line += t9_engine.get_completion()
                 t9_engine.new_completion()
+        else:
+            if doing_punctuation_stuff:
+                doing_punctuation_stuff = False
+                line += t9_engine.get_completion()
+                t9_engine.new_completion()
         try:
             t9_engine.add_digit(int(key))
         except WordNotFoundException:
-            if not doing_punctuation_stuff:
-                word_not_found = True
+            word_not_found = True
             pass
     elif key == keys.TAB:
         if word_not_found:
-            t9_engine.reset_completion()
+            t9_engine.reset_completion_choice()
             word_not_found = False
         else:
             try:
                 t9_engine.next_completion()
             except WordNotFoundException:
-                if not doing_punctuation_stuff:
-                    word_not_found = True
-                else:
-                    t9_engine.reset_completion()
+                word_not_found = True
                 pass
     elif key == "0" or key == keys.SPACE:
         word_not_found = False
@@ -254,6 +268,9 @@ while True:
     elif key == keys.ENTER and word_not_found:
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
+            if "1" in new_word:
+                print("'1' is not a supported character in words")
+                continue
             if t9_engine.add_word(new_word):
                 with open("user_dict.txt", "a") as f:
                     f.write(new_word + "\n")
