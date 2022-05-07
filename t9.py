@@ -170,17 +170,14 @@ def recalculate_state():
         if not doing_punctuation_stuff:
             if len(line) == 0:
                 t9_engine.set_should_capitalize(True)
-            found_space = False
             for i, c in enumerate(line[::-1]):
                 if c == " ":
-                    found_space = True
                     continue
-                if found_space == True:
-                    if c in ".!?":
-                        t9_engine.set_should_capitalize(True)
-                    else:
-                        t9_engine.set_should_capitalize(False)
-                    break
+                if c in ".!?":
+                    t9_engine.set_should_capitalize(True)
+                else:
+                    t9_engine.set_should_capitalize(False)
+                break
         try:
             while t9_engine.get_completion() != word_to_match:
                 t9_engine.next_completion()
