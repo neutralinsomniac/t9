@@ -268,8 +268,8 @@ while True:
     elif key == keys.ENTER and word_not_found:
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
-            if "1" in new_word:
-                print("'1' is not a supported character in words")
+            if "1" in new_word or " " in new_word:
+                print("'1' and ' ' are not supported characters in words")
                 continue
             if t9_engine.add_word(new_word):
                 with open("user_dict.txt", "a") as f:
