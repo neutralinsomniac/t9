@@ -14,7 +14,7 @@ Keys:
 - Backspace: delete character
 - Enter: when '?' is showing (indicating an unknown word), hit enter to add a
   custom word to the dictionary. Otherwise, accept the current completion
-- ^: toggle capitalizing the current word
+- ^: cycle capitalization mode
 - ctrl-w: backspace current word
 - ~: toggle T9 state re-calculation on backspace. useful when backspacing to words that aren't in the dictionary
 
