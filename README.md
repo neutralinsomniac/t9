@@ -4,7 +4,7 @@ Features:
 - contractions (just type the word like you would if the apostrophe didn't exist. no need to hit '1')
 - re-completions on backspace
 - auto capitalization
-- persistant custom dictionary
+- persistent custom dictionary
 
 Keys:
 - 1-9: normal T9 input
