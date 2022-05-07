@@ -165,7 +165,7 @@ def recalculate_state():
             continue
     if t9_engine.get_cur_completion_len() != 0:
         # init the engine with the word
-        line = line[:-1*len(word_to_match)]
+        line = line[:-1*t9_engine.get_cur_completion_len()]
         # should we capitalize?
         if not doing_punctuation_stuff:
             if len(line) == 0:
@@ -295,6 +295,11 @@ while True:
             t9_engine.new_completion()
             word_not_found = False
             recalculate_state()
+    elif key == keys.ENTER:
+        line += t9_engine.get_completion()
+        t9_engine.new_completion()
+        t9_engine.set_should_capitalize(False)
+        word_not_found = False
     elif key == "":
         if word_not_found:
             word_not_found = False
