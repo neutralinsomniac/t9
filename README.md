@@ -12,8 +12,10 @@ Keys:
 - Tab: next completion
 - 0 or space: accept completion and insert a space
 - Backspace: delete character
-- Enter: when '?' is showing (indicating an unknown word), hit enter to add a custom word to the dictionary
-- ^w: backspace current word
+- Enter: when '?' is showing (indicating an unknown word), hit enter to add a
+  custom word to the dictionary. Otherwise, accept the current completion
+- ^: toggle capitalizing the current word
+- ctrl-w: backspace current word
 - ~: toggle T9 state re-calculation on backspace. useful when backspacing to words that aren't in the dictionary
 
 Quickstart:

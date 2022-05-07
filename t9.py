@@ -125,6 +125,9 @@ class T9Engine():
     def set_should_capitalize(self, should_capitalize):
         self._should_capitalize = should_capitalize
 
+    def toggle_should_capitalize(self):
+        self._should_capitalize = not self._should_capitalize
+
 def recalculate_state():
     global t9_engine
     global line
@@ -253,6 +256,9 @@ while True:
         else:
             line += t9_engine.get_completion()
             t9_engine.new_completion()
+        word_not_found = False
+    elif key == keys.CARET:
+        t9_engine.toggle_should_capitalize()
         word_not_found = False
     elif key == keys.TAB:
         if word_not_found:
