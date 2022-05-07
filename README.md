@@ -7,16 +7,17 @@ Features:
 - persistent custom dictionary
 
 Keys:
-- 1-9: normal T9 input
-- a-z, punctuation: alternate input. maps to one of the 1-9 keys.
+- 1-9: normal T9 input (1 is punctuation, 2-9 is a-z)
+- a-z, punctuation: alternate input for QWERTY keyboards. maps to one of the 1-9 keys.
 - Tab: next completion
 - 0 or space: accept completion and insert a space
 - Backspace: delete character
-- Enter: when '?' is showing (indicating an unknown word), hit enter to add a
-  custom word to the dictionary. Otherwise, accept the current completion
+- Enter: when '?' is showing (indicating an unknown word): add a custom word to
+  the dictionary. Otherwise, accept the current completion without adding a space
 - ^: cycle capitalization mode
-- ctrl-w: backspace current word
-- ~: toggle T9 state re-calculation on backspace. useful when backspacing to words that aren't in the dictionary
+- ctrl-w: backspace entire current word
+- ~: toggle T9 state re-calculation on backspace. useful when backspacing up to
+  words that aren't in the dictionary
 
 Quickstart:
 ```
