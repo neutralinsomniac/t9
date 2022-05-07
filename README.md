@@ -1,6 +1,6 @@
 A sane T9 engine.
 
-![t9demo](https://pintobyte.com/tmp/t9_demo.gif)
+![t9demo](https://pintobyte.com/tmp/t9_demo_light.gif)
 
 Features:
 - contractions (just type the word like you would if the apostrophe didn't exist. no need to hit '1')
