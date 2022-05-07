@@ -41,7 +41,7 @@ class T9Engine():
     def add_word(self, word):
         cur = self._lookup
         for c in word:
-            if c == "'":
+            if c in "'-":
                 continue
             num = self.T9[c.lower()]
             if num not in cur:
@@ -124,7 +124,7 @@ def recalculate_state():
     word = line.split(" ")[-1]
     doing_punctuation_stuff = False
     for c in word:
-        if c == "'":
+        if c in "'-":
             continue
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
             t9_engine.new_completion()
@@ -179,7 +179,7 @@ while True:
     completion_len = t9_engine.get_engine_chars()
     i = 0
     while i < completion_len:
-        if completion[i] == "'":
+        if completion[i] in "'-":
             completion_len += 1
         i += 1
 
@@ -254,12 +254,19 @@ while True:
             t9_engine.add_word(new_word)
             with open("user_dict.txt", "a") as f:
                 f.write(new_word + "\n")
-            line += new_word + " "
+            line += new_word
             t9_engine.new_completion()
             word_not_found = False
+            recalculate_state()
     elif key == "":
-        t9_engine.new_completion()
-        word_not_found = False
-        doing_punctuation_stuff = False
+        if word_not_found:
+            word_not_found = False
+            continue
+        if t9_engine.get_cur_completion_len() == 0:
+            if len(line) == 0:
+                continue
+            line = line[:-1]
+        else:
+            t9_engine.new_completion()
+            word_not_found = False
         recalculate_state()
-
