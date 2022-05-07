@@ -51,6 +51,9 @@ class T9Engine():
             cur["words"] = []
         if word not in cur["words"]:
             cur["words"].append(word)
+            return True
+        else:
+            return False
 
     def load_dict(self, filename):
         with open(filename, "r") as dictionary:
@@ -251,9 +254,9 @@ while True:
     elif key == keys.ENTER and word_not_found:
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
-            t9_engine.add_word(new_word)
-            with open("user_dict.txt", "a") as f:
-                f.write(new_word + "\n")
+            if t9_engine.add_word(new_word):
+                with open("user_dict.txt", "a") as f:
+                    f.write(new_word + "\n")
             line += new_word
             t9_engine.new_completion()
             word_not_found = False
