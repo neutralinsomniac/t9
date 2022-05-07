@@ -36,6 +36,7 @@ class T9Engine():
         self._history = [] # breadcrumb pointers of the path we've taken through the dictionary
         self._completion_len = 0 # number of characters in the current completion state
         self._completion_choice = 0 # index into current 'words' array
+        self._should_capitalize = True
 
     def add_word(self, word):
         cur = self._lookup
@@ -78,7 +79,10 @@ class T9Engine():
         candidate = self._cur
         while candidate:
             if 'words' in candidate:
-                return candidate['words'][self._completion_choice % len(candidate['words'])]
+                word = candidate['words'][self._completion_choice % len(candidate['words'])]
+                if self._should_capitalize:
+                    word = word.capitalize()
+                return word
             for key in iter(candidate):
                 if key != "words":
                     candidate = candidate[key]
@@ -101,12 +105,16 @@ class T9Engine():
         self._history.clear()
         self._completion_choice = 0
         self._completion_len = 0
+        self._should_capitalize = False
 
     def get_cur_completion_len(self):
         return len(self.get_completion())
 
     def get_engine_chars(self):
         return self._completion_len
+
+    def set_should_capitalize(self, should_capitalize):
+        self._should_capitalize = should_capitalize
 
 def recalculate_state():
     global t9_engine
@@ -126,6 +134,21 @@ def recalculate_state():
         # init the engine with the word
         word_to_match = line[-1*t9_engine.get_cur_completion_len():]
         line = line[:-1*t9_engine.get_cur_completion_len()]
+        # should we capitalize?
+        if not doing_punctuation_stuff:
+            if len(line) == 0:
+                t9_engine.set_should_capitalize(True)
+            found_space = False
+            for i, c in enumerate(line[::-1]):
+                if c == " ":
+                    found_space = True
+                    continue
+                if found_space == True:
+                    if c in ".!?":
+                        t9_engine.set_should_capitalize(True)
+                    else:
+                        t9_engine.set_should_capitalize(False)
+                    break
         try:
             while t9_engine.get_completion() != word_to_match:
                 t9_engine.next_completion()
@@ -204,8 +227,13 @@ while True:
                 pass
     elif key == "0" or key == keys.SPACE:
         word_not_found = False
-        line += t9_engine.get_completion() + " "
+        completion = t9_engine.get_completion()
+        line += completion + " "
         t9_engine.new_completion()
+        if completion in ".!?":
+            t9_engine.set_should_capitalize(True)
+        else:
+            t9_engine.set_should_capitalize(False)
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
         if word_not_found:
@@ -233,4 +261,5 @@ while True:
         t9_engine.new_completion()
         word_not_found = False
         doing_punctuation_stuff = False
+        recalculate_state()
 
