@@ -2,6 +2,7 @@
 
 import time
 import sys
+import re
 from os.path import exists
 from getkey import getkey, keys
 
@@ -114,7 +115,6 @@ class T9Engine():
         self._history.clear()
         self._completion_choice = 0
         self._completion_len = 0
-        self._should_capitalize = False
 
     def get_cur_completion_len(self):
         return len(self.get_completion())
@@ -130,9 +130,26 @@ def recalculate_state():
     global line
     global doing_punctuation_stuff
 
-    word = line.split(" ")[-1]
+    if len(line) == 0:
+        t9_engine.new_completion()
+        t9_engine.set_should_capitalize(True)
+        return
+
+    word_to_match = line.split(" ")[-1]
+    if len(word_to_match) == 0:
+        return
+
+    m = re.split(r"([.!?]+)", word_to_match)
+    m = list(filter(None, m))
+    if len(m) != 0:
+        word_to_match = m[-1]
+
+    m = re.split(r"([a-zA-Z'1-9]+)", word_to_match)
+    m = list(filter(None, m))
+    word_to_match = m[-1]
+
     doing_punctuation_stuff = False
-    for c in word:
+    for c in word_to_match:
         if c in "'":
             continue
         if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
@@ -148,8 +165,7 @@ def recalculate_state():
             continue
     if t9_engine.get_cur_completion_len() != 0:
         # init the engine with the word
-        word_to_match = line[-1*t9_engine.get_cur_completion_len():]
-        line = line[:-1*t9_engine.get_cur_completion_len()]
+        line = line[:-1*len(word_to_match)]
         # should we capitalize?
         if not doing_punctuation_stuff:
             if len(line) == 0:
@@ -247,10 +263,11 @@ while True:
         completion = t9_engine.get_completion()
         line += completion + " "
         t9_engine.new_completion()
-        if completion in ".!?":
-            t9_engine.set_should_capitalize(True)
-        else:
-            t9_engine.set_should_capitalize(False)
+        if len(completion) != 0:
+            if completion in ".!?":
+                t9_engine.set_should_capitalize(True)
+            else:
+                t9_engine.set_should_capitalize(False)
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
         if word_not_found:
