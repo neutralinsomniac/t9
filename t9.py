@@ -163,6 +163,7 @@ while True:
     completion_left = completion[:completion_len]
     completion_right = completion[completion_len:]
     print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else ""), end='')
+
     key = getkey()
 
     if key == "Q":
@@ -228,4 +229,8 @@ while True:
             line += new_word + " "
             t9_engine.new_completion()
             word_not_found = False
+    elif key == "":
+        t9_engine.new_completion()
+        word_not_found = False
+        doing_punctuation_stuff = False
 

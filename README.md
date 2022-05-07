@@ -12,6 +12,7 @@ Keys:
 - 0 or space: accept completion and insert a space
 - Backspace: delete character
 - Enter: when '?' is showing (indicating an unknown word), hit enter to add a custom word to the dictionary
+- ^w: delete current word (*not* from the dictionary)
 
 Quickstart:
 ```
