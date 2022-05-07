@@ -19,6 +19,10 @@ class WordNotFoundException(Exception):
     pass
 
 class T9Engine():
+    CASE_MODE_NORMAL = 0
+    CASE_MODE_CAPITALIZE = 1
+    CASE_MODE_UPPER = 2
+
     T9 = {'.': 1, ',': 1, '!': 1, '?': 1,
           ':': 1, '-': 1, '\'': 1, '/': 1, '*': 1,
           '(': 1, ')': 1, ';': 1, '[': 1, ']': 1,
@@ -40,7 +44,7 @@ class T9Engine():
         self._history = [] # breadcrumb pointers of the path we've taken through the dictionary
         self._completion_len = 0 # number of characters in the current completion state
         self._completion_choice = 0 # index into current 'words' array
-        self._should_capitalize = True
+        self._case_mode = self.CASE_MODE_CAPITALIZE
 
     def add_word(self, word):
         cur = self._lookup
@@ -90,8 +94,10 @@ class T9Engine():
         while candidate:
             if 'words' in candidate:
                 word = candidate['words'][self._completion_choice % len(candidate['words'])]
-                if self._should_capitalize:
+                if self._case_mode == self.CASE_MODE_CAPITALIZE:
                     word = word.capitalize()
+                elif self._case_mode == self.CASE_MODE_UPPER:
+                    word = word.upper()
                 return word
             for key in iter(candidate):
                 if key != "words":
@@ -122,11 +128,11 @@ class T9Engine():
     def get_engine_chars(self):
         return self._completion_len
 
-    def set_should_capitalize(self, should_capitalize):
-        self._should_capitalize = should_capitalize
+    def set_case_mode(self, case_mode):
+        self._case_mode = case_mode
 
-    def toggle_should_capitalize(self):
-        self._should_capitalize = not self._should_capitalize
+    def cycle_case_mode(self):
+        self._case_mode = (self._case_mode + 1) % 3
 
 def recalculate_state():
     global t9_engine
@@ -135,7 +141,7 @@ def recalculate_state():
 
     if len(line) == 0:
         t9_engine.new_completion()
-        t9_engine.set_should_capitalize(True)
+        t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
         return
 
     word_to_match = line.split(" ")[-1]
@@ -166,26 +172,41 @@ def recalculate_state():
         except WordNotFoundException:
             t9_engine.new_completion()
             continue
-    if t9_engine.get_cur_completion_len() != 0:
-        # init the engine with the word
-        line = line[:-1*t9_engine.get_cur_completion_len()]
-        # should we capitalize?
-        if not doing_punctuation_stuff:
-            if len(line) == 0:
-                t9_engine.set_should_capitalize(True)
-            for i, c in enumerate(line[::-1]):
-                if c == " ":
-                    continue
-                if c in ".!?":
-                    t9_engine.set_should_capitalize(True)
-                else:
-                    t9_engine.set_should_capitalize(False)
-                break
+    if t9_engine.get_cur_completion_len() == 0:
+        return
+
+    # init the engine with the word
+    line = line[:-1*t9_engine.get_cur_completion_len()]
+    # should we capitalize?
+    if not doing_punctuation_stuff:
+        if len(line) == 0:
+            t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
+        for i, c in enumerate(line[::-1]):
+            if c == " ":
+                continue
+            if c in ".!?":
+                t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
+            else:
+                t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
+            break
+    # try to recover the completion choice that was made
+    try_caseless = False
+    try:
+        while t9_engine.get_completion() != word_to_match:
+            t9_engine.next_completion()
+    except WordNotFoundException:
+        t9_engine.reset_completion_choice()
+        try_caseless = True
+        pass
+
+    # weird capitalization can make the above search fail, so let's try again ignoring case
+    if try_caseless:
         try:
-            while t9_engine.get_completion() != word_to_match:
+            while t9_engine.get_completion().casefold() != word_to_match.casefold():
                 t9_engine.next_completion()
         except WordNotFoundException:
             pass
+
 
 t9_engine = T9Engine()
 
@@ -258,7 +279,7 @@ while True:
             t9_engine.new_completion()
         word_not_found = False
     elif key == keys.CARET:
-        t9_engine.toggle_should_capitalize()
+        t9_engine.cycle_case_mode()
         word_not_found = False
     elif key == keys.TAB:
         if word_not_found:
@@ -277,9 +298,9 @@ while True:
         t9_engine.new_completion()
         if len(completion) != 0:
             if completion in ".!?":
-                t9_engine.set_should_capitalize(True)
+                t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
             else:
-                t9_engine.set_should_capitalize(False)
+                t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         doing_punctuation_stuff = False
     elif key == keys.BACKSPACE:
         if word_not_found:
@@ -310,7 +331,7 @@ while True:
     elif key == keys.ENTER:
         line += t9_engine.get_completion()
         t9_engine.new_completion()
-        t9_engine.set_should_capitalize(False)
+        t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         word_not_found = False
     elif key == "":
         if word_not_found:
