@@ -3,7 +3,7 @@ A sane T9 engine.
 Features:
 - contractions (just type the word like you would if the apostrophe didn't exist. no need to hit '1')
 - re-completions on backspace
-- auto capitalization
+- auto capitalization/custom capitalization
 - persistent custom dictionary
 
 Keys:
