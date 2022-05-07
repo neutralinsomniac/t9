@@ -202,8 +202,9 @@ print("loaded in {}s".format(time.time() - start))
 
 line = ""
 
-doing_punctuation_stuff = False
+engine_enabled = True
 
+doing_punctuation_stuff = False
 word_not_found = False
 
 while True:
@@ -248,6 +249,14 @@ while True:
         except WordNotFoundException:
             word_not_found = True
             pass
+    elif key == keys.TILDE:
+        engine_enabled = not engine_enabled
+        if engine_enabled:
+            recalculate_state()
+        else:
+            line += t9_engine.get_completion()
+            t9_engine.new_completion()
+        word_not_found = False
     elif key == keys.TAB:
         if word_not_found:
             t9_engine.reset_completion_choice()
@@ -277,11 +286,11 @@ while True:
             if len(line) == 0:
                 continue
             line = line[:-1]
-            recalculate_state()
+            if engine_enabled: recalculate_state()
         else:
             tmp = t9_engine.backspace()
             if not tmp:
-                recalculate_state()
+                if engine_enabled: recalculate_state()
     elif key == keys.ENTER and word_not_found:
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
@@ -294,7 +303,7 @@ while True:
             line += new_word
             t9_engine.new_completion()
             word_not_found = False
-            recalculate_state()
+            if engine_enabled: recalculate_state()
     elif key == keys.ENTER:
         line += t9_engine.get_completion()
         t9_engine.new_completion()
@@ -311,4 +320,4 @@ while True:
         else:
             t9_engine.new_completion()
             word_not_found = False
-        recalculate_state()
+        if engine_enabled: recalculate_state()

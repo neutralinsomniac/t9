@@ -14,6 +14,7 @@ Keys:
 - Backspace: delete character
 - Enter: when '?' is showing (indicating an unknown word), hit enter to add a custom word to the dictionary
 - ^w: delete current word (*not* from the dictionary)
+- ~: toggle T9 state re-calculation on backspace. useful when backspacing to words that aren't in the dictionary
 
 Quickstart:
 ```
