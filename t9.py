@@ -25,7 +25,7 @@ class T9Engine():
 
     T9 = {'.': 1, ',': 1, '!': 1, '?': 1,
           ':': 1, '-': 1, '_': 1, '\'': 1, '/': 1, '*': 1,
-          '(': 1, ')': 1, '<': 1, '>': 1,
+          '\\': 1, '(': 1, ')': 1, '<': 1, '>': 1,
           ';': 1, '[': 1, ']': 1,
           'a': 2, 'b': 2, 'c': 2,
           'd': 3, 'e': 3, 'f': 3,
@@ -123,7 +123,6 @@ class T9Engine():
         self._history.clear()
         self._completion_choice = 0
         self._completion_len = 0
-        self._doing_punctuation_stuff = False
 
     def get_cur_completion_len(self):
         return len(self.get_completion())
