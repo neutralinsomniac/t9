@@ -166,8 +166,7 @@ def determine_capitalization(t9_engine, line):
             t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         break
 
-def recalculate_state():
-    global t9_engine
+def recalculate_state(t9_engine):
     global line
     global doing_punctuation_stuff
 
@@ -301,7 +300,7 @@ while True:
         # toggle engine state recalculation
         engine_enabled = not engine_enabled
         if engine_enabled:
-            recalculate_state()
+            recalculate_state(t9_engine)
         else:
             line += t9_engine.get_completion()
             t9_engine.new_completion()
@@ -345,14 +344,14 @@ while True:
                 continue
             line = line[:-1]
             # update engine with new state
-            if engine_enabled: recalculate_state()
+            if engine_enabled: recalculate_state(t9_engine)
         else:
             tmp = t9_engine.backspace()
             # this handles the case where we backspaced out of one word, but
             #  ended up on top of another word (like with deleting punctuation
             #  or deleting parts of a word that isn't in the dictionary
             if not tmp:
-                if engine_enabled: recalculate_state()
+                if engine_enabled: recalculate_state(t9_engine)
     elif key == keys.ENTER and word_not_found:
         # add new word to the dictionary (when the engine can't figure out what you want)
         new_word = input("\nnew word: ").strip()
@@ -367,7 +366,7 @@ while True:
             line += new_word
             t9_engine.new_completion()
             word_not_found = False
-            if engine_enabled: recalculate_state()
+            if engine_enabled: recalculate_state(t9_engine)
     elif key == keys.ENTER:
         # accept the current completion (without outputting a space)
         line += t9_engine.get_completion()
@@ -386,4 +385,4 @@ while True:
         else:
             t9_engine.new_completion()
             word_not_found = False
-        if engine_enabled: recalculate_state()
+        if engine_enabled: recalculate_state(t9_engine)
