@@ -126,7 +126,7 @@ class T9Engine():
     def get_cur_completion_len(self):
         return len(self.get_completion())
 
-    def get_engine_chars(self):
+    def get_num_engine_chars(self):
         return self._completion_len
 
     def set_case_mode(self, case_mode):
@@ -135,31 +135,8 @@ class T9Engine():
     def cycle_case_mode(self):
         self._case_mode = (self._case_mode + 1) % 3
 
-def recalculate_state():
-    global t9_engine
-    global line
+def match_engine_to_word(t9_engine, word_to_match):
     global doing_punctuation_stuff
-
-    # line is already empty
-    if len(line) == 0:
-        t9_engine.new_completion()
-        t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
-        return
-
-    word_to_match = line.split(" ")[-1]
-    if len(word_to_match) == 0:
-        return
-
-    m = re.split(r"([.!?]+)", word_to_match)
-    m = list(filter(None, m))
-    if len(m) != 0:
-        word_to_match = m[-1]
-
-    m = re.split(r"([a-zA-Z'1-9]+)", word_to_match)
-    m = list(filter(None, m))
-    word_to_match = m[-1]
-
-    doing_punctuation_stuff = False
 
     # init the engine with the keys pressed for this word
     for c in word_to_match:
@@ -176,9 +153,50 @@ def recalculate_state():
         except WordNotFoundException:
             t9_engine.new_completion()
             continue
-    if t9_engine.get_cur_completion_len() == 0:
+
+def determine_capitalization(t9_engine, line):
+    if len(line) == 0:
+        t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
+    for i, c in enumerate(line[::-1]):
+        if c == " ":
+            continue
+        if c in ".!?":
+            t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
+        else:
+            t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
+        break
+
+def recalculate_state():
+    global t9_engine
+    global line
+    global doing_punctuation_stuff
+
+    # line is already empty
+    if len(line) == 0:
+        t9_engine.new_completion()
+        t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
         return
 
+    # determine the word we should try to match with the engine
+    word_to_match = line.split(" ")[-1]
+    if len(word_to_match) == 0:
+        return
+
+    m = re.split(r"([.!?]+)", word_to_match)
+    m = list(filter(None, m))
+    if len(m) != 0:
+        word_to_match = m[-1]
+
+    m = re.split(r"([a-zA-Z'1-9]+)", word_to_match)
+    m = list(filter(None, m))
+    word_to_match = m[-1]
+
+    doing_punctuation_stuff = False
+
+    match_engine_to_word(t9_engine, word_to_match)
+
+    if t9_engine.get_num_engine_chars() == 0:
+        return
 
     # try to recover the completion choice that was made
     try_caseless = False
@@ -198,21 +216,12 @@ def recalculate_state():
         except WordNotFoundException:
             pass
 
+    # now that the word is loaded into the engine, remove it from the line
     line = line[:-1*t9_engine.get_cur_completion_len()]
 
-    # should we capitalize?
+    # should we capitalize the word?
     if not doing_punctuation_stuff:
-        if len(line) == 0:
-            t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
-        for i, c in enumerate(line[::-1]):
-            if c == " ":
-                continue
-            if c in ".!?":
-                t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
-            else:
-                t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
-            break
-
+        determine_capitalization(t9_engine, line)
 
 t9_engine = T9Engine()
 
@@ -238,7 +247,7 @@ while True:
     # figure out how many of the completion characters are from input vs
     #  how many are from the engine attempting full completion
     completion = t9_engine.get_completion()
-    num_keys_pressed = t9_engine.get_engine_chars()
+    num_keys_pressed = t9_engine.get_num_engine_chars()
     i = 0
     while i < num_keys_pressed:
         # apostrophes cause the number of chars output to not match the number of keys pressed
@@ -330,7 +339,7 @@ while True:
             # just clear the word not found state
             word_not_found = False
             continue
-        if t9_engine.get_engine_chars() == 0:
+        if t9_engine.get_num_engine_chars() == 0:
             # engine is empty, so just remove a character from the line
             if len(line) == 0:
                 continue
