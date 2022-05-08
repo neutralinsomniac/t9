@@ -218,7 +218,9 @@ def recalculate_state(t9_engine):
             while t9_engine.get_completion().casefold() != word_to_match.casefold():
                 t9_engine.next_completion()
         except WordNotFoundException:
-            pass
+            # if we can't find the word at all, just bail
+            t9_engine.new_completion()
+            return
 
     # now that the word is loaded into the engine, remove it from the line
     line = line[:-1*t9_engine.get_cur_completion_len()]
