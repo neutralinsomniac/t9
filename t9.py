@@ -46,6 +46,7 @@ class T9Engine():
         self._completion_len = 0 # number of characters in the current completion state
         self._completion_choice = 0 # index into current 'words' array
         self._case_mode = self.CASE_MODE_CAPITALIZE
+        self._doing_punctuation_stuff = False
 
     def add_word(self, word):
         cur = self._lookup
@@ -122,6 +123,7 @@ class T9Engine():
         self._history.clear()
         self._completion_choice = 0
         self._completion_len = 0
+        self._doing_punctuation_stuff = False
 
     def get_cur_completion_len(self):
         return len(self.get_completion())
@@ -135,19 +137,23 @@ class T9Engine():
     def cycle_case_mode(self):
         self._case_mode = (self._case_mode + 1) % 3
 
-def match_engine_to_word(t9_engine, word_to_match):
-    global doing_punctuation_stuff
+    def set_doing_punctuation_stuff(self, doing_punctuation_stuff):
+        self._doing_punctuation_stuff = doing_punctuation_stuff
 
+    def get_doing_punctuation_stuff(self):
+        return self._doing_punctuation_stuff
+
+def match_engine_to_word(t9_engine, word_to_match):
     # init the engine with the keys pressed for this word
     for c in word_to_match:
         if c in "'":
             continue
-        if T9Engine.T9[c.lower()] == 1 and not doing_punctuation_stuff:
+        if T9Engine.T9[c.lower()] == 1 and not t9_engine.get_doing_punctuation_stuff():
             t9_engine.new_completion()
-            doing_punctuation_stuff = True
-        elif doing_punctuation_stuff and T9Engine.T9[c.lower()] != 1:
+            t9_engine.set_doing_punctuation_stuff(True)
+        elif t9_engine.get_doing_punctuation_stuff() and T9Engine.T9[c.lower()] != 1:
             t9_engine.new_completion()
-            doing_punctuation_stuff = False
+            t9_engine.set_doing_punctuation_stuff(False)
         try:
             t9_engine.add_digit(T9Engine.T9[c.lower()])
         except WordNotFoundException:
@@ -168,7 +174,6 @@ def determine_capitalization(t9_engine, line):
 
 def recalculate_state(t9_engine):
     global line
-    global doing_punctuation_stuff
 
     # line is already empty
     if len(line) == 0:
@@ -190,7 +195,7 @@ def recalculate_state(t9_engine):
     m = list(filter(None, m))
     word_to_match = m[-1]
 
-    doing_punctuation_stuff = False
+    t9_engine.set_doing_punctuation_stuff(False)
 
     match_engine_to_word(t9_engine, word_to_match)
 
@@ -219,7 +224,7 @@ def recalculate_state(t9_engine):
     line = line[:-1*t9_engine.get_cur_completion_len()]
 
     # should we capitalize the word?
-    if not doing_punctuation_stuff:
+    if not t9_engine.get_doing_punctuation_stuff():
         determine_capitalization(t9_engine, line)
 
 t9_engine = T9Engine()
@@ -236,10 +241,7 @@ t9_engine.load_dict(sys.argv[1])
 print("loaded in {}s".format(time.time() - start))
 
 line = ""
-
 engine_enabled = True
-
-doing_punctuation_stuff = False
 word_not_found = False
 
 while True:
@@ -278,16 +280,16 @@ while True:
             continue
         if key in "1":
             # punctuation
-            if not doing_punctuation_stuff:
-                doing_punctuation_stuff = True
+            if not t9_engine.get_doing_punctuation_stuff():
+                t9_engine.set_doing_punctuation_stuff(True)
                 line += t9_engine.get_completion()
                 t9_engine.new_completion()
         else:
             # normal letter input
-            if doing_punctuation_stuff:
+            if t9_engine.get_doing_punctuation_stuff():
                 # if coming out of punctuation, insert the punctuation and
                 #  start a new completion
-                doing_punctuation_stuff = False
+                t9_engine.set_doing_punctuation_stuff(False)
                 line += t9_engine.get_completion()
                 t9_engine.new_completion()
         try:
@@ -332,7 +334,7 @@ while True:
                 t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
             else:
                 t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
-        doing_punctuation_stuff = False
+        t9_engine.set_doing_punctuation_stuff(False)
     elif key == keys.BACKSPACE:
         if word_not_found:
             # just clear the word not found state
