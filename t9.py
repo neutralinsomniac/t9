@@ -256,7 +256,8 @@ while True:
         pass
 
     if key in "123456789":
-        word_not_found = False
+        if word_not_found:
+            continue
         if key in "1":
             if not doing_punctuation_stuff:
                 doing_punctuation_stuff = True
