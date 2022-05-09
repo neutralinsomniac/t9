@@ -186,6 +186,7 @@ def recalculate_state(t9_engine):
     # determine the word we should try to match with the engine
     word_to_match = line.split(" ")[-1]
     if len(word_to_match) == 0:
+        determine_capitalization(t9_engine, line)
         return
 
     m = re.split(r"([.!?]+)", word_to_match)
@@ -202,6 +203,7 @@ def recalculate_state(t9_engine):
     match_engine_to_word(t9_engine, word_to_match)
 
     if t9_engine.get_num_engine_chars() == 0:
+        determine_capitalization(t9_engine, line)
         return
 
     # try to recover the completion choice that was made
@@ -222,6 +224,7 @@ def recalculate_state(t9_engine):
         except WordNotFoundException:
             # if we can't find the word at all, just bail
             t9_engine.new_completion()
+            determine_capitalization(t9_engine, line)
             return
 
     # now that the word is loaded into the engine, remove it from the line
