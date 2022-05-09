@@ -18,8 +18,7 @@ Keys:
   the dictionary. Otherwise, accept the current completion without adding a space
 - ^: cycle capitalization mode
 - ctrl-w: backspace entire current word
-- ~: toggle T9 state re-calculation on backspace. useful when backspacing up to
-  words that aren't in the dictionary
+- ~: toggle T9 engine on and off
 
 Quickstart:
 ```

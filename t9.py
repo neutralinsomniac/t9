@@ -130,6 +130,9 @@ class T9Engine():
     def get_num_engine_chars(self):
         return self._completion_len
 
+    def get_case_mode(self):
+        return self._case_mode
+
     def set_case_mode(self, case_mode):
         self._case_mode = case_mode
 
@@ -259,7 +262,16 @@ while True:
 
     completion_left = completion[:num_keys_pressed]
     completion_right = completion[num_keys_pressed:]
-    print(ERASE_LINE + "\r" + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right +
+
+    case_mode = t9_engine.get_case_mode()
+    if case_mode == T9Engine.CASE_MODE_CAPITALIZE:
+        case_mode = "Abc"
+    elif case_mode == T9Engine.CASE_MODE_NORMAL:
+        case_mode = "abc"
+    elif case_mode == T9Engine.CASE_MODE_UPPER:
+        case_mode = "ABC"
+
+    print(ERASE_LINE + "\r" + "[{}{}] ".format(case_mode, "+" if engine_enabled else " ") + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right +
             ("?" if word_not_found else ""), end='')
 
     key = getkey()
@@ -269,13 +281,17 @@ while True:
         break
 
     # for using a-z and period instead of numbers
-    try:
-        if not key.isdecimal():
-            key = str(T9Engine.T9[key.lower()])
-    except KeyError:
-        pass
+    if engine_enabled:
+        try:
+            if not key.isdecimal():
+                key = str(T9Engine.T9[key.lower()])
+        except KeyError:
+            pass
 
     if key in "123456789":
+        if not engine_enabled:
+            line += key
+            continue
         if word_not_found:
             # don't allow input when the engine is stuck
             continue
@@ -309,10 +325,16 @@ while True:
             t9_engine.new_completion()
         word_not_found = False
     elif key == keys.CARET:
+        if not engine_enabled:
+            line += key
+            continue
         # cycle case
         t9_engine.cycle_case_mode()
         word_not_found = False
     elif key == keys.TAB:
+        if not engine_enabled:
+            line += key
+            continue
         # cycle next completion
         if word_not_found:
             # if the engine doesn't know the prediction, reset the choice back to the start
@@ -325,6 +347,9 @@ while True:
                 word_not_found = True
                 pass
     elif key == "0" or key == keys.SPACE:
+        if not engine_enabled:
+            line += key
+            continue
         # accept current completion and insert a space
         word_not_found = False
         completion = t9_engine.get_completion()
@@ -337,6 +362,10 @@ while True:
                 t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         t9_engine.set_doing_punctuation_stuff(False)
     elif key == keys.BACKSPACE:
+        if not engine_enabled:
+            if len(line) != 0:
+                line = line[:-1]
+            continue
         if word_not_found:
             # just clear the word not found state
             word_not_found = False
@@ -356,6 +385,8 @@ while True:
             if not tmp:
                 if engine_enabled: recalculate_state(t9_engine)
     elif key == keys.ENTER and word_not_found:
+        if not engine_enabled:
+            continue
         # add new word to the dictionary (when the engine can't figure out what you want)
         new_word = input("\nnew word: ").strip()
         if len(new_word) != 0:
@@ -371,12 +402,16 @@ while True:
             word_not_found = False
             if engine_enabled: recalculate_state(t9_engine)
     elif key == keys.ENTER:
+        if not engine_enabled:
+            continue
         # accept the current completion (without outputting a space)
         line += t9_engine.get_completion()
         t9_engine.new_completion()
         t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         word_not_found = False
     elif key == "":
+        if not engine_enabled:
+            continue
         # backspace the entire current completion, or back up one character
         if word_not_found:
             word_not_found = False
@@ -389,3 +424,7 @@ while True:
             t9_engine.new_completion()
             word_not_found = False
         if engine_enabled: recalculate_state(t9_engine)
+    else:
+        if engine_enabled:
+            continue
+        line += key
