@@ -1,1 +1,2 @@
 getkey==0.6.5
+pyperclip==1.8.2

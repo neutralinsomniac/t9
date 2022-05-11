@@ -19,6 +19,8 @@ Keys:
 - ^: cycle capitalization mode
 - ctrl-w: backspace entire current word
 - ~: toggle T9 engine on and off
+- ctrl-c: copy current line to clipboard
+- ctrl-u: clear entire line
 
 Quickstart:
 ```

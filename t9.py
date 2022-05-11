@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
 
-import time
-import sys
-import re
 import os
-from os.path import exists
+import pyperclip
+import re
+import signal
+import sys
+import time
+
 from getkey import getkey, keys
+from os.path import exists
 
 ERASE_LINE = "\x1b[2K"
 UNDERLINE_START = u"\u001b[4m"
 UNDERLINE_END = u"\u001b[0m"
+
+def copy_line_to_clipboard(signum, frame):
+    global line
+    pyperclip.copy(line)
+
+signal.signal(signal.SIGINT, copy_line_to_clipboard)
 
 # load dictionary
 if len(sys.argv) != 2:
@@ -420,7 +429,7 @@ while True:
         t9_engine.new_completion()
         t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         word_not_found = False
-    elif key == "":
+    elif key == keys.CTRL_W:
         if not engine_enabled:
             continue
         # backspace the entire current completion, or back up one character
@@ -430,11 +439,16 @@ while True:
         if t9_engine.get_cur_completion_len() == 0:
             if len(line) == 0:
                 continue
-            line = line[:-1]
-        else:
-            t9_engine.new_completion()
-            word_not_found = False
-        if engine_enabled: recalculate_state(t9_engine)
+            line = line.rstrip()
+
+        recalculate_state(t9_engine)
+        t9_engine.new_completion()
+        word_not_found = False
+    elif key == keys.CTRL_U:
+        line = ""
+        t9_engine.new_completion()
+        t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
+        word_not_found = False
     else:
         if engine_enabled:
             continue
