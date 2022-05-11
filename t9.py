@@ -260,6 +260,12 @@ print("loaded in {}s".format(time.time() - start))
 line = ""
 engine_enabled = True
 word_not_found = False
+reverse_keymap = {
+        "1": "7", "2": "8", "3": "9",
+        "4": "4", "5": "5", "6": "6",
+        "7": "1", "8": "2", "9": "3",
+        "0": "0", ".": "1"
+        }
 
 while True:
     # figure out how many of the completion characters are from input vs
@@ -303,12 +309,19 @@ while True:
         break
 
     # for using a-z and period instead of numbers
-    if engine_enabled:
-        try:
-            if not key.isdecimal():
-                key = str(T9Engine.T9[key.lower()])
-        except KeyError:
-            pass
+    try:
+        key = reverse_keymap[key]
+    except KeyError:
+        pass
+
+    #if engine_enabled:
+    #    try:
+    #        if not key.isdecimal():
+    #            key = str(T9Engine.T9[key.lower()])
+    #        else:
+    #            key = reverse_keymap[key]
+    #    except KeyError:
+    #        pass
 
     if key in "123456789":
         if not engine_enabled:
@@ -353,7 +366,7 @@ while True:
         # cycle case
         t9_engine.cycle_case_mode()
         word_not_found = False
-    elif key == keys.TAB:
+    elif key == keys.TAB or key == keys.PLUS:
         if not engine_enabled:
             line += key
             continue
@@ -383,7 +396,7 @@ while True:
             else:
                 t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         t9_engine.set_doing_punctuation_stuff(False)
-    elif key == keys.BACKSPACE:
+    elif key == keys.BACKSPACE or key == keys.HYPHEN_OR_MINUS_SIGN:
         if not engine_enabled:
             if len(line) != 0:
                 line = line[:-1]
@@ -446,7 +459,7 @@ while True:
         recalculate_state(t9_engine)
         t9_engine.new_completion()
         word_not_found = False
-    elif key == keys.CTRL_U:
+    elif key == keys.CTRL_U or key == keys.ASTERISK:
         line = ""
         t9_engine.new_completion()
         t9_engine.set_case_mode(T9Engine.CASE_MODE_CAPITALIZE)
