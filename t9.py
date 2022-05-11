@@ -3,6 +3,7 @@
 import time
 import sys
 import re
+import os
 from os.path import exists
 from getkey import getkey, keys
 
@@ -274,8 +275,15 @@ while True:
     elif case_mode == T9Engine.CASE_MODE_UPPER:
         case_mode = "ABC"
 
-    print(ERASE_LINE + "\r" + "[{}{}] ".format(case_mode, "+" if engine_enabled else " ") + line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right +
-            ("?" if word_not_found else ""), end='')
+    print(ERASE_LINE + "\r", end='')
+    status = "[{}{}] ".format(case_mode, "+" if engine_enabled else " ")
+    print(status, end='')
+    to_print = line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else "")
+    term_width, _ = os.get_terminal_size()
+    left_idx = max(0, len(status) + len(to_print) - term_width)
+    to_print = to_print[left_idx:]
+    print(to_print, end='')
+    sys.stdout.flush()
 
     key = getkey()
 
