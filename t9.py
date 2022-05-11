@@ -289,7 +289,9 @@ while True:
     print(status, end='')
     to_print = line + UNDERLINE_START + completion_left + UNDERLINE_END + completion_right + ("?" if word_not_found else "")
     term_width, _ = os.get_terminal_size()
-    left_idx = max(0, len(status) + len(to_print) - term_width)
+    # this just works because the number of characters in the status equals the number of printable characters in the
+    #  UNDERLINE_START/UNDERLINE_END escape codes
+    left_idx = max(0, len(to_print) - term_width)
     to_print = to_print[left_idx:]
     print(to_print, end='')
     sys.stdout.flush()
