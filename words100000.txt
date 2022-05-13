@@ -37,6 +37,16 @@ w
 x
 y
 z
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
 the
 of
 and
@@ -9039,7 +9049,7 @@ posed
 rumors
 gazette
 spells
-i'll
+I'll
 adjusted
 posterior
 nationality
@@ -10471,7 +10481,7 @@ groove
 zip
 organism
 syndicate
-i'd
+I'd
 disappointment
 bowls
 generous
@@ -18047,7 +18057,7 @@ alluvial
 abrupt
 garlic
 chong
-i's
+I's
 disagree
 gottfried
 bursts

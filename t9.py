@@ -125,6 +125,15 @@ class T9Engine():
 
         self._completion_choice += 1
 
+    def prev_completion(self):
+        if self._completion_len == 0:
+            return
+
+        if "words" not in self._cur or (self._completion_choice - 1) < 0:
+            raise WordNotFoundException
+
+        self._completion_choice -= 1
+
     def reset_completion_choice(self):
         self._completion_choice = 0
 
@@ -396,7 +405,18 @@ while True:
             else:
                 t9_engine.set_case_mode(T9Engine.CASE_MODE_NORMAL)
         t9_engine.set_doing_punctuation_stuff(False)
-    elif key == keys.BACKSPACE or key == keys.HYPHEN_OR_MINUS_SIGN:
+    elif key == keys.HYPHEN_OR_MINUS_SIGN:
+        if not engine_enabled:
+            line += key
+            continue
+        # cycle next completion
+        try:
+            t9_engine.prev_completion()
+            word_not_found = False
+        except WordNotFoundException:
+            word_not_found = True
+            pass
+    elif key == keys.BACKSPACE:
         if not engine_enabled:
             if len(line) != 0:
                 line = line[:-1]
