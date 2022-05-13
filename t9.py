@@ -107,7 +107,7 @@ class T9Engine():
             if 'words' in candidate:
                 word = candidate['words'][self._completion_choice % len(candidate['words'])]
                 if self._case_mode == self.CASE_MODE_CAPITALIZE:
-                    word = word.capitalize()
+                    word = word[0].upper() + word[1:]
                 elif self._case_mode == self.CASE_MODE_UPPER:
                     word = word.upper()
                 return word
